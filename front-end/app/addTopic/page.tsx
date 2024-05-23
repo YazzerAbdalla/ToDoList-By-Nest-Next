@@ -23,12 +23,13 @@ export default function AddTopic() {
       }
 
       try {
-        const response = await axios.post("/api/topics", {
+        const response = await axios.post("http://localhost:3000/tasks", {
           title,
           description,
         });
+        console.log("🚀 ~ response:", response);
 
-        if (response.status === 200) {
+        if (response.status === 201) {
           setLoading(false);
           alert("Topic created successfully!");
           router.push("/");

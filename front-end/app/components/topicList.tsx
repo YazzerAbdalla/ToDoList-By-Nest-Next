@@ -6,26 +6,39 @@ import { HiPencilAlt } from "react-icons/hi";
 import axios, { all } from "axios";
 import { useEffect, useState } from "react";
 import { topicProps } from "@/types/topics";
+import CheckBox from "./CheckBox";
 
-
-export const getTopics = async (callBack) => {
+export const getTopics = async (callBack: any) => {
   try {
-    const res = await axios.get("http://localhost:3000/api/topics");
+    const res = await axios.get("http://localhost:3000/tasks");
     // console.log(res.data);
 
     if (!res.data) {
       throw new Error("Failed to fetch topics");
     }
 
-    callBack(res.data.topics);
+    callBack(res.data);
     return res.data;
   } catch (error) {
     console.log("Error loading topics: ", error);
   }
 };
 
+function formatDate(timestamp: number) {
+  const date = new Date(timestamp);
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
+  const year = date.getFullYear();
+
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${day}/${month}/${year}, ${hours}:${minutes}`;
+}
+
 export default function TopicsList() {
-  const [allTopies, setAllTopies] = useState<topicProps[]>();
+  const [allTopies, setAllTopies] = useState<topicProps[]>([]);
 
   useEffect(() => {
     const res: any = getTopics(setAllTopies);
@@ -35,7 +48,7 @@ export default function TopicsList() {
     <>
       {allTopies?.map((t) => (
         <div
-          key={t._id}
+          key={t.id}
           className="p-4 border border-slate-300 my-3 flex justify-between gap-5 items-start"
         >
           <div>
@@ -43,15 +56,23 @@ export default function TopicsList() {
             <div>{t.description}</div>
           </div>
 
-          <div className="flex gap-2">
-            <RemoveBtn
-              id={t._id}
-              setAllTopics={setAllTopies}
-              allTopics={allTopies}
-            />
-            <Link href={`/editTopic/${t._id}`}>
-              <HiPencilAlt size={24} />
-            </Link>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center flex-row gap-4 ">
+              <CheckBox
+                id={t.id}
+                setAllTopics={setAllTopies}
+                allTopics={allTopies}
+              />
+              <RemoveBtn
+                id={t.id}
+                setAllTopics={setAllTopies}
+                allTopics={allTopies}
+              />
+              <Link href={`/editeTopic/${t.id}`}>
+                <HiPencilAlt size={24} />
+              </Link>
+            </div>
+            <div>{formatDate(t.dueDate)}</div>
           </div>
         </div>
       ))}

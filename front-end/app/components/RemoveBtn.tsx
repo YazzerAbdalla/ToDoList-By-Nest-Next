@@ -1,13 +1,11 @@
-"use client";
-import React, { Dispatch, SetStateAction } from "react";
-import { HiOutlineTrash } from "react-icons/hi";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import React, { useCallback } from "react";
 import { topicProps } from "@/types/topics";
+import { useRouter } from "next/navigation";
+import { HiOutlineTrash } from "react-icons/hi";
 
 interface RemoveBtnProps {
   id: string;
-  setAllTopics: Dispatch<SetStateAction<topicProps[]>>;
+  setAllTopics: React.Dispatch<React.SetStateAction<topicProps[]>>;
   allTopics: topicProps[];
 }
 
@@ -21,14 +19,14 @@ const RemoveBtn: React.FC<RemoveBtnProps> = ({
   const removeTopic = useCallback(async () => {
     const confirmed = window.confirm("Are you sure?");
     if (confirmed) {
-      let index = allTopics.findIndex((x) => x._id == id);
+      let index = allTopics.findIndex((x) => x.id == id);
       if (index !== -1) {
         const updatedTopics = [...allTopics];
         updatedTopics.splice(index, 1);
         setAllTopics(updatedTopics);
-        
+
         try {
-          const res = await fetch(`http://localhost:3000/api/topics?id=${id}`, {
+          const res = await fetch(`http://localhost:3000/tasks/${id}`, {
             method: "DELETE",
           });
 

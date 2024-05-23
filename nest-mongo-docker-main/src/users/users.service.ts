@@ -1,9 +1,11 @@
- import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-
+import * as bcrypt from 'bcrypt';
 import { User } from './user.model';
 
+const saltOrRounds = 10;
 @Injectable()
 export class UsersService {
   constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
@@ -11,18 +13,25 @@ export class UsersService {
   /**
    * Create One User
    *
-   * @param name
-   * @param surname
-   * @param points
+   * @param username
+   * @param password
    */
-  async createOneUser(name: string, surname: string, points: number) {
+  async createOneUser(username: string, password: string) {
+    const checkUserName = await this.userModel.find({ username }).exec();
+    if (checkUserName.length !== 0) {
+      const isMatch = await bcrypt.compare(password, checkUserName[0].password);
+      if (isMatch) {
+        return { ok: 'Login success' };
+      }
+    }
+
+    const hash = await bcrypt.hash(password, saltOrRounds);
     const newUser = new this.userModel({
-      name,
-      surname: surname,
-      points,
+      username,
+      password: hash,
     });
-    const result = await newUser.save();
-    return result.id as string;
+    await newUser.save();
+    return { ok: 'Register success' };
   }
 
   /**
@@ -32,9 +41,8 @@ export class UsersService {
     const users = await this.userModel.find().exec();
     return users.map((user) => ({
       id: user.id,
-      name: user.name,
-      surname: user.surname,
-      points: user.points,
+      username: user.username,
+      password: user.password,
     }));
   }
 
@@ -46,35 +54,10 @@ export class UsersService {
     const user = await this.findUser(userId);
     return {
       id: user.id,
-      name: user.name,
-      surname: user.surname,
-      points: user.points,
+      username: user.username,
+      password: user.password,
     };
   }
-
-  async updateUser(
-    userId: string,
-    name: string,
-    surname: string,
-    points: number,
-  ) {
-    const modUser = await this.findUser(userId);
-
-    //Only modify Values passed
-    if (name) modUser.name = name;
-    if (surname) modUser.surname = surname;
-    if (points) modUser.points = points;
-
-    modUser.save();
-  }
-
-  async deleteUser(userId: string) {
-    const result = await this.userModel.deleteOne({ _id: userId }).exec();
-    if (result.n === 0) {
-      throw new NotFoundException('Could not find user.');
-    }
-  }
-
   private async findUser(id: string): Promise<User> {
     let user: any;
     try {
@@ -86,5 +69,10 @@ export class UsersService {
       throw new NotFoundException('Could not find user.');
     }
     return user;
+  }
+  generateJwt(payload: string) {
+    return jwt.sign(payload, process.env.SECRET_KEY, {
+      expiresIn: '24h',
+    });
   }
 }

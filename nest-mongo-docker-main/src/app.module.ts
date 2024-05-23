@@ -3,13 +3,17 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { TopicsModule } from './topic/topices.module';
+import { TasksModule } from './tasks/tasks.module';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
     UsersModule,
-    TopicsModule,
-    MongooseModule.forRoot('mongodb://admin:admin@localhost:27017/Cleopatra?authSource=admin'),
+    TasksModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    MongooseModule.forRoot(
+      'mongodb://admin:admin@localhost:27017/NestTodo?authSource=admin',
+    ),
   ],
   controllers: [AppController],
   providers: [AppService],

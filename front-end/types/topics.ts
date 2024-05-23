@@ -1,8 +1,8 @@
 export interface topicProps {
-  _id: string;
+  id: string;
   title: string;
   description: string;
-  createdAt: string;
-  updatedAt: string;
+  dueDate: number;
+  isDone: boolean;
   __v: number;
 }
